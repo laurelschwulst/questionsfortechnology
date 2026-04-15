@@ -1,0 +1,1515 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Questions for Technology</title>
+  <!--
+
+  This is a fork of David Rege's works:
+  
+  - https://catalogueofsimplepleasures.netlify.app
+  - https://ukosne.netlify.app
+
+  The questions come from L.M. Sacasas, "Do Artifacts Have Ethics?" (2014):
+  
+  - https://thefrailestthing.com/2014/11/29/do-artifacts-have-ethics
+
+  Thank you!
+
+  Laurel Schwulst
+  https://laurelschwulst.com
+  
+  -->
+  <style>
+    :root {
+      --bg: #ffffff;
+      --ink: #253033;
+      --muted: #5d6e70;
+      --card: #ffffff;
+      --line: rgba(37, 48, 51, 0.18);
+      --accent: #2f7a6a;
+      --shadow: 0 4px 10px rgba(21, 36, 48, 0.028);
+      --stack-gap: 1rem;
+      --orbit-ring-size: 44px;
+      --orbit-ring-stroke: 0.6px;
+      --orbit-dot-size: 7px;
+      --orbit-dot-stroke: 0.45px;
+      --orbit-radius: calc((var(--orbit-ring-size) / 2) - (var(--orbit-ring-stroke) / 2));
+      --orbit-cycle-ms: 3200ms;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      font-family: Helvetica, Arial, sans-serif;
+      color: var(--ink);
+    }
+
+    body {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: var(--bg);
+      overflow-x: hidden;
+      padding: 1.1rem;
+    }
+
+    .app {
+      width: min(94vw, 700px);
+      animation: rise-in 640ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+      display: grid;
+      gap: var(--stack-gap);
+      padding-top: var(--stack-gap);
+      justify-items: center;
+    }
+
+    .title {
+      margin: 0;
+      text-transform: none;
+      letter-spacing: 0.01em;
+      font-weight: 400;
+      font-size: min(calc(92vw * 0.034572), 15.73px);
+      line-height: 1.35;
+      color: rgba(37, 48, 51, 0.45);
+      transition: opacity 260ms ease, transform 260ms ease, max-height 260ms ease;
+      overflow: hidden;
+      max-height: 2.3rem;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .title.is-hidden {
+      max-height: 0;
+      opacity: 0;
+      transform: translateY(-3px);
+      pointer-events: none;
+    }
+
+    .title-area {
+      display: grid;
+      justify-items: center;
+      gap: 0.24rem;
+      animation: fade-in 780ms ease-out 120ms both;
+    }
+
+    .control-orbit {
+      width: 64px;
+      height: 64px;
+      border: none;
+      background: transparent;
+      border-radius: 999px;
+      padding: 0;
+      position: relative;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: transform 170ms ease;
+    }
+
+    .control-orbit:hover {
+      transform: translateY(-1px);
+    }
+
+    .control-orbit:active {
+      transform: translateY(1px);
+    }
+
+    .control-orbit:focus-visible {
+      outline: 3px solid rgba(47, 122, 106, 0.35);
+      outline-offset: 2px;
+    }
+
+    .title-toggle {
+      color: rgba(37, 48, 51, 0.62);
+    }
+
+    .title-dot {
+      width: calc(var(--orbit-dot-size) * 0.5);
+      height: calc(var(--orbit-dot-size) * 0.5);
+      border-radius: 50%;
+      border: var(--orbit-dot-stroke) solid rgba(37, 48, 51, 0.52);
+      background: transparent;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      opacity: 0.9;
+      animation: soft-blink 2.2s ease-in-out infinite;
+      transition: border-color 300ms ease, opacity 300ms ease;
+    }
+
+    .title-toggle:hover .title-dot {
+      border-color: rgba(37, 48, 51, 0.72);
+      opacity: 1;
+    }
+
+    .title-area.is-revealed .title-dot {
+      opacity: 0.55;
+      border-color: rgba(37, 48, 51, 0.36);
+    }
+
+    .title-area.is-roaming .title-dot {
+      animation: none;
+      opacity: 0;
+    }
+
+    .title-link {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .title-link:hover,
+    .title-link:focus-visible {
+      text-decoration: underline;
+      text-underline-offset: 0.12em;
+    }
+
+    .card-stack {
+      --card-corner-radius: 32px;
+      width: min(92vw, 455px);
+      aspect-ratio: 3.5 / 2.5;
+      cursor: pointer;
+      touch-action: manipulation;
+      position: relative;
+      outline: none;
+      transition: transform 200ms ease;
+      animation: fade-in 820ms ease-out 220ms both;
+    }
+
+    .card-stack:hover {
+      transform: translateY(-1px);
+    }
+
+    .card-stack:focus-visible {
+      box-shadow: 0 0 0 3px rgba(47, 122, 106, 0.38);
+      border-radius: var(--card-corner-radius);
+    }
+
+    .card {
+      position: absolute;
+      inset: 0;
+      border-radius: var(--card-corner-radius);
+      border: 1px solid var(--line);
+      background: var(--card);
+      box-shadow: var(--shadow);
+      padding: clamp(0.68rem, 0.62rem + 0.35vw, 1rem);
+      display: grid;
+      place-items: center;
+      container-type: inline-size;
+      backface-visibility: hidden;
+      transition: transform 320ms ease, box-shadow 320ms ease;
+    }
+
+    .card-front {
+      z-index: 3;
+      transform: translate(0, 0);
+      box-shadow: var(--shadow);
+    }
+
+    .card-back {
+      z-index: 0;
+      transform: translate(0, 0);
+      box-shadow: var(--shadow);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .card-stack.is-flipping .card-back {
+      opacity: 1;
+    }
+
+    .card-text {
+      margin: 0;
+      max-width: 84%;
+      text-align: center;
+      line-height: 1.35;
+      font-size: 3.4572cqw;
+      letter-spacing: 0.01em;
+      transform-origin: 50% 50%;
+      font-weight: 400;
+    }
+
+    .card-export {
+      position: absolute;
+      left: var(--card-corner-radius);
+      bottom: var(--card-corner-radius);
+      width: calc(var(--orbit-dot-size) * 0.5);
+      height: calc(var(--orbit-dot-size) * 0.5);
+      border-radius: 50%;
+      border: var(--orbit-dot-stroke) solid rgba(37, 48, 51, 0.52);
+      background: rgba(255, 255, 255, 0.96);
+      padding: 0;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      z-index: 6;
+      transform: translate(-50%, 50%);
+      transition: border-color 180ms ease, background 180ms ease, opacity 180ms ease;
+      opacity: 0.9;
+      overflow: visible;
+      will-change: transform, opacity;
+      animation: export-dot-blink 2.45s cubic-bezier(0.22, 0.7, 0.3, 1) infinite;
+    }
+
+    .card-export::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: calc(var(--card-corner-radius) * 2);
+      height: calc(var(--card-corner-radius) * 2);
+      border-radius: 50%;
+      border: var(--orbit-dot-stroke) solid rgba(37, 48, 51, 0.22);
+      transform: translate(-50%, -50%) scale(0.08);
+      opacity: 0;
+      pointer-events: none;
+      will-change: transform, opacity;
+      animation: export-hint-ring 2.45s cubic-bezier(0.22, 0.7, 0.3, 1) infinite;
+    }
+
+    .card-export:hover {
+      border-color: rgba(37, 48, 51, 0.68);
+      background: rgba(255, 255, 255, 1);
+      opacity: 1;
+      animation-play-state: paused;
+    }
+
+    .card-export:hover::after {
+      animation-play-state: paused;
+    }
+
+    .card-export:focus-visible {
+      outline: 3px solid rgba(47, 122, 106, 0.35);
+      outline-offset: 1px;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.58rem;
+      animation: fade-in 870ms ease-out 300ms both;
+    }
+
+    .live-orbit {
+      position: relative;
+    }
+
+    .live-ring {
+      width: var(--orbit-ring-size);
+      height: var(--orbit-ring-size);
+      border-radius: 50%;
+      border: var(--orbit-ring-stroke) solid rgba(37, 48, 51, 0.16);
+      display: block;
+      opacity: 0.8;
+      transition: border-color 300ms ease, border-width 300ms ease, opacity 300ms ease;
+    }
+
+    .live-dot {
+      width: var(--orbit-dot-size);
+      height: var(--orbit-dot-size);
+      border-radius: 50%;
+      border: var(--orbit-dot-stroke) solid rgba(37, 48, 51, 0.52);
+      background: transparent;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      opacity: 0.82;
+      transition: border-color 320ms ease, opacity 320ms ease;
+    }
+
+    .live-center-dot {
+      animation: soft-blink 1.95s ease-in-out infinite;
+      transition: opacity 460ms cubic-bezier(0.22, 0.76, 0.29, 1);
+    }
+
+    .live-orbit-dot {
+      animation: orbit-spin var(--orbit-cycle-ms) linear infinite;
+      opacity: 0;
+      transition: opacity 560ms cubic-bezier(0.22, 0.76, 0.29, 1);
+      will-change: transform, opacity;
+    }
+
+    .live-orbit.is-on .live-ring {
+      border-color: rgba(33, 78, 68, 0.66);
+      border-width: calc(var(--orbit-ring-stroke) + 0.15px);
+      opacity: 1;
+    }
+
+    .live-orbit.is-on .live-dot {
+      border-color: rgba(33, 78, 68, 0.88);
+      opacity: 0.95;
+    }
+
+    .live-orbit.is-on .live-center-dot {
+      animation: none;
+      opacity: 0;
+    }
+
+    .live-orbit.is-on .live-orbit-dot {
+      opacity: 1;
+    }
+
+    .ambient-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 22;
+    }
+
+    .wander-dot {
+      width: calc(var(--orbit-dot-size) * 0.5);
+      height: calc(var(--orbit-dot-size) * 0.5);
+      border-radius: 50%;
+      border: var(--orbit-dot-stroke) solid rgba(37, 48, 51, 0.52);
+      background: transparent;
+      position: fixed;
+      left: 0;
+      top: 0;
+      transform: translate(-50%, -50%);
+      opacity: 0;
+      transition: opacity 420ms ease;
+      will-change: left, top, opacity;
+    }
+
+    .ambient-layer.is-active .wander-dot {
+      opacity: 0.92;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @keyframes soft-blink {
+      0%,
+      100% {
+        transform: translate(-50%, -50%) scale(0.68);
+        opacity: 0.45;
+      }
+      50% {
+        transform: translate(-50%, -50%) scale(1.34);
+        opacity: 1;
+      }
+    }
+
+    @keyframes export-dot-blink {
+      0%,
+      100% {
+        transform: translate(-50%, 50%) scale(0.68);
+        opacity: 0.78;
+      }
+      52% {
+        transform: translate(-50%, 50%) scale(1.24);
+        opacity: 1;
+      }
+    }
+
+    @keyframes export-hint-ring {
+      0%,
+      100% {
+        transform: translate(-50%, -50%) scale(0.08);
+        opacity: 0;
+      }
+      22% {
+        opacity: 0.33;
+      }
+      70% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.08;
+      }
+    }
+
+    @keyframes orbit-spin {
+      0% {
+        transform: translate(-50%, -50%) rotate(0deg) translateX(var(--orbit-radius));
+      }
+      100% {
+        transform: translate(-50%, -50%) rotate(360deg) translateX(var(--orbit-radius));
+      }
+    }
+
+    @keyframes rise-in {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fade-in {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .card-stack {
+        --card-corner-radius: 26px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <div class="title-area" id="titleArea">
+      <button class="title-toggle control-orbit" id="titleToggle" type="button" aria-expanded="false" aria-controls="titleText" aria-label="Reveal title">
+        <span class="live-ring title-ring" aria-hidden="true"></span>
+        <span class="title-dot" aria-hidden="true"></span>
+        <span class="sr-only">Toggle title</span>
+      </button>
+      <p class="title is-hidden" id="titleText">
+        <a class="title-link" href="https://www.are.na/editorial/an-unbound-book" target="_blank" rel="noopener noreferrer">
+          A Catalogue of Simple Pleasures
+        </a>
+      </p>
+    </div>
+
+    <section
+      class="card-stack"
+      id="cardStack"
+      tabindex="0"
+      role="button"
+      aria-label="Simple pleasure card. Click to show the next card. Use the export button to download the top card as PNG."
+      aria-live="polite"
+    >
+      <article class="card card-front" id="cardFront" aria-hidden="false">
+        <p class="card-text" id="frontText"></p>
+      </article>
+      <article class="card card-back" id="cardBack" aria-hidden="true">
+        <p class="card-text" id="backText"></p>
+      </article>
+      <button class="card-export" id="cardExportButton" type="button" aria-label="Download top card as PNG"></button>
+    </section>
+
+    <div class="controls">
+      <button class="control-orbit live-orbit" id="liveButton" type="button" aria-pressed="false" aria-label="Turn live mode on">
+        <span class="live-ring" aria-hidden="true"></span>
+        <span class="live-dot live-center-dot" aria-hidden="true"></span>
+        <span class="live-dot live-orbit-dot" aria-hidden="true"></span>
+        <span class="sr-only">Toggle live mode</span>
+      </button>
+    </div>
+  </main>
+  <div class="ambient-layer" id="ambientLayer" aria-hidden="true">
+    <span class="wander-dot" id="wanderDot"></span>
+  </div>
+
+  <script>
+    let currentCardIndex = 0;
+    let isLiveMode = false;
+    let liveFlipIntervalId = null;
+    let isCardFlipInProgress = false;
+    let deckSequence = [];
+    let queuedDeckSequence = null;
+    let deckPointer = 0;
+    const LIVE_INTERVAL_MS = 3200;
+    const FLIP_DURATION_CLICK_MS = 1700;
+    const FLIP_DURATION_LIVE_MS = 2050;
+    const FLIP_TRIGGER_MANUAL = "manual";
+    const FLIP_TRIGGER_LIVE = "live";
+    const FLIP_CLEAR_PHASE = 0.56;
+    const FLIP_SETTLE_LOCK_MS = 150;
+    const FLIP_FADE_CLEAR_MID_OPACITY = 0.82;
+    const FLIP_FADE_CLEAR_END_OPACITY = 0.56;
+    const FLIP_FADE_RETURN_MID_OPACITY = 0.3;
+    const FLIP_FADE_RETURN_END_OPACITY = 0.08;
+    const DOT_RETURN_MS = 1200;
+    const CARD_SWIPE_MIN_DISTANCE_PX = 42;
+    const CARD_SWIPE_MAX_DURATION_MS = 900;
+    const CARD_SWIPE_CLICK_SUPPRESS_MS = 420;
+    const CARD_SWIPE_DIRECTION_BIAS = 1.18;
+    const ORBIT_LAUNCH_MS = 2200;
+    const ORBIT_LAUNCH_UPWARD_PX = 180;
+    const ORBIT_LAUNCH_CURVE_X_PX = 36;
+    const ORBIT_CENTER_FOLLOW = 0.42;
+    const ORBIT_CENTER_DRIFT_SPEED = 0.000045;
+    const ORBIT_CENTER_DRIFT_RATIO = 0.73;
+    const ORBIT_RADIUS_MIN_X = 110;
+    const ORBIT_RADIUS_MAX_X = 230;
+    const ORBIT_RADIUS_MIN_Y = 72;
+    const ORBIT_RADIUS_MAX_Y = 168;
+    const ORBIT_RADIUS_RESPONSE = 0.52;
+    const ORBIT_PARAM_RESPONSE = 0.4;
+    const ORBIT_TILT_RESPONSE = 0.35;
+    const ORBIT_BASE_SPEED_MIN = 0.00028;
+    const ORBIT_BASE_SPEED_MAX = 0.00046;
+    const ORBIT_SPEED_WOBBLE = 0.008;
+    const ORBIT_SPEED_WOBBLE_FREQ = 0.00012;
+    const ORBIT_RADIUS_WOBBLE = 0.01;
+    const ORBIT_RADIUS_WOBBLE_FREQ = 0.00007;
+
+    const cardTexts = [
+  "What sort of person will the use of this technology make of me?",
+  "What habits will the use of this technology instill?",
+  "How will the use of this technology affect my experience of time?",
+  "How will the use of this technology affect my experience of place?",
+  "How will the use of this technology affect how I relate to other people?",
+  "How will the use of this technology affect how I relate to the world around me?",
+  "What practices will the use of this technology cultivate?",
+  "What practices will the use of this technology displace?",
+  "What will the use of this technology encourage me to notice?",
+  "What will the use of this technology encourage me to ignore?",
+  "What was required of other human beings so that I might be able to use this technology?",
+  "What was required of other creatures so that I might be able to use this technology?",
+  "What was required of the earth so that I might be able to use this technology?",
+  "Does the use of this technology bring me joy? [N.B. This was years before I even heard of Marie Kondo!]",
+  "Does the use of this technology arouse anxiety?",
+  "How does this technology empower me? At whose expense?",
+  "What feelings does the use of this technology generate in me toward others?",
+  "Can I imagine living without this technology? Why, or why not?",
+  "How does this technology encourage me to allocate my time?",
+  "Could the resources used to acquire and use this technology be better deployed?",
+  "Does this technology automate or outsource labor or responsibilities that are morally essential?",
+  "What desires does the use of this technology generate?",
+  "What desires does the use of this technology dissipate?",
+  "What possibilities for action does this technology present? Is it good that these actions are now possible?",
+  "What possibilities for action does this technology foreclose? Is it good that these actions are no longer possible?",
+  "How does the use of this technology shape my vision of a good life?",
+  "What limits does the use of this technology impose upon me?",
+  "What limits does my use of this technology impose upon others?",
+  "What does my use of this technology require of others who would (or must) interact with me?",
+  "What assumptions about the world does the use of this technology tacitly encourage?",
+  "What knowledge has the use of this technology disclosed to me about myself?",
+  "What knowledge has the use of this technology disclosed to me about others? Is it good to have this knowledge?",
+  "What are the potential harms to myself, others, or the world that might result from my use of this technology?",
+  "Upon what systems, technical or human, does my use of this technology depend? Are these systems just?",
+  "Does my use of this technology encourage me to view others as a means to an end?",
+  "Does using this technology require me to think more or less?",
+  "What would the world be like if everyone used this technology exactly as I use it?",
+  "What risks will my use of this technology entail for others? Have they consented?",
+  "Can the consequences of my use of this technology be undone? Can I live with those consequences?",
+  "Does my use of this technology make it easier to live as if I had no responsibilities toward my neighbor?",
+  "Can I be held responsible for the actions which this technology empowers? Would I feel better if I couldn’t?"
+];
+
+    const cardStack = document.getElementById("cardStack");
+    let frontCard = document.getElementById("cardFront");
+    let backCard = document.getElementById("cardBack");
+    let frontText = document.getElementById("frontText");
+    let backText = document.getElementById("backText");
+    const cardExportButton = document.getElementById("cardExportButton");
+    const titleArea = document.getElementById("titleArea");
+    const titleToggle = document.getElementById("titleToggle");
+    const titleText = document.getElementById("titleText");
+    const liveButton = document.getElementById("liveButton");
+    const ambientLayer = document.getElementById("ambientLayer");
+    const wanderDot = document.getElementById("wanderDot");
+    let titleDotMotionToken = 0;
+    let titleDotFrameId = null;
+    let titleDotPosition = { x: 0, y: 0 };
+    let titleDotHeading = Math.random() * Math.PI * 2;
+    let orbitCenter = { x: 0, y: 0 };
+    let orbitCenterTarget = { x: 0, y: 0 };
+    let orbitRadiusX = 16;
+    let orbitRadiusY = 12;
+    let orbitRadiusTargetX = 160;
+    let orbitRadiusTargetY = 110;
+    let orbitAngle = Math.random() * Math.PI * 2;
+    let orbitAngularBase = ORBIT_BASE_SPEED_MIN;
+    let orbitAngularBaseTarget = ORBIT_BASE_SPEED_MIN;
+    let orbitTilt = Math.random() * Math.PI * 2;
+    let orbitTiltDrift = 0;
+    let orbitTiltDriftTarget = 0;
+    let orbitWobblePhase = Math.random() * Math.PI * 2;
+    let orbitRadiusPhase = Math.random() * Math.PI * 2;
+    let orbitLaunchStartMs = 0;
+    let orbitLaunchHome = { x: 0, y: 0 };
+    let roamLastFrameMs = 0;
+    let isCardExportInProgress = false;
+    let cardTouchStartPoint = null;
+    let suppressCardClickUntilMs = 0;
+
+    function shuffleArray(values) {
+      for (let i = values.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [values[i], values[j]] = [values[j], values[i]];
+      }
+    }
+
+    function buildDeck(previousIndex = null) {
+      const deck = cardTexts.map((_, index) => index);
+      shuffleArray(deck);
+
+      if (previousIndex !== null && deck.length > 1 && deck[0] === previousIndex) {
+        [deck[0], deck[1]] = [deck[1], deck[0]];
+      }
+
+      return deck;
+    }
+
+    function resetDeck(previousIndex = null) {
+      deckSequence = buildDeck(previousIndex);
+      queuedDeckSequence = null;
+      deckPointer = 0;
+      currentCardIndex = deckSequence[deckPointer];
+    }
+
+    function peekNextIndex() {
+      if (deckSequence.length === 0) {
+        return 0;
+      }
+
+      if (deckPointer < deckSequence.length - 1) {
+        return deckSequence[deckPointer + 1];
+      }
+
+      if (!queuedDeckSequence) {
+        queuedDeckSequence = buildDeck(currentCardIndex);
+      }
+
+      return queuedDeckSequence[0];
+    }
+
+    function swapCardLayers() {
+      frontCard.classList.remove("card-front");
+      frontCard.classList.add("card-back");
+      frontCard.setAttribute("aria-hidden", "true");
+
+      backCard.classList.remove("card-back");
+      backCard.classList.add("card-front");
+      backCard.setAttribute("aria-hidden", "false");
+
+      [frontCard, backCard] = [backCard, frontCard];
+      [frontText, backText] = [backText, frontText];
+    }
+
+    function renderLiveModeState() {
+      liveButton.setAttribute("aria-pressed", String(isLiveMode));
+      liveButton.classList.toggle("is-on", isLiveMode);
+      liveButton.setAttribute("aria-label", isLiveMode ? "Turn live mode off" : "Turn live mode on");
+    }
+
+    function syncLiveOrbitCycle() {
+      liveButton.style.setProperty("--orbit-cycle-ms", `${LIVE_INTERVAL_MS}ms`);
+    }
+
+    function toggleTitleVisibility() {
+      const hidden = titleText.classList.toggle("is-hidden");
+      const isExpanded = !hidden;
+      titleArea.classList.toggle("is-revealed", isExpanded);
+      titleToggle.setAttribute("aria-expanded", String(isExpanded));
+      titleToggle.setAttribute("aria-label", isExpanded ? "Hide title" : "Reveal title");
+
+      if (isExpanded) {
+        startTitleDotRoam();
+      } else {
+        stopTitleDotRoamAndReturnHome();
+      }
+    }
+
+    function renderVisibleCards() {
+      frontText.textContent = cardTexts[currentCardIndex];
+      backText.textContent = cardTexts[peekNextIndex()];
+    }
+
+    function randomFloat(min, max) {
+      return min + (Math.random() * (max - min));
+    }
+
+    function getTitleButtonCenter() {
+      const rect = titleToggle.getBoundingClientRect();
+      return {
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2
+      };
+    }
+
+    function setDotPosition(x, y) {
+      titleDotPosition = { x, y };
+      wanderDot.style.left = `${x}px`;
+      wanderDot.style.top = `${y}px`;
+    }
+
+    function parsePixel(value, fallback = 0) {
+      const parsed = Number.parseFloat(value);
+      return Number.isFinite(parsed) ? parsed : fallback;
+    }
+
+    function roundedRectPath(ctx, x, y, width, height, radius) {
+      const clampedRadius = Math.max(0, Math.min(radius, width / 2, height / 2));
+      ctx.moveTo(x + clampedRadius, y);
+      ctx.lineTo(x + width - clampedRadius, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + clampedRadius);
+      ctx.lineTo(x + width, y + height - clampedRadius);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - clampedRadius, y + height);
+      ctx.lineTo(x + clampedRadius, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - clampedRadius);
+      ctx.lineTo(x, y + clampedRadius);
+      ctx.quadraticCurveTo(x, y, x + clampedRadius, y);
+      ctx.closePath();
+    }
+
+    function buildWrappedLines(ctx, text, maxWidth) {
+      const words = (text || "").trim().split(/\s+/).filter(Boolean);
+      if (words.length === 0) {
+        return [""];
+      }
+
+      const lines = [];
+      let currentLine = words[0];
+
+      for (let i = 1; i < words.length; i += 1) {
+        const candidate = `${currentLine} ${words[i]}`;
+        if (ctx.measureText(candidate).width <= maxWidth) {
+          currentLine = candidate;
+        } else {
+          lines.push(currentLine);
+          currentLine = words[i];
+        }
+      }
+
+      lines.push(currentLine);
+      return lines;
+    }
+
+    function applyCardShadow(ctx, shadowCss) {
+      if (!shadowCss || shadowCss === "none") {
+        return;
+      }
+
+      const shadowMatch = shadowCss.match(/(-?\d*\.?\d+)px\s+(-?\d*\.?\d+)px\s+(-?\d*\.?\d+)px(?:\s+(-?\d*\.?\d+)px)?\s+(rgba?\([^)]+\))/i);
+      if (!shadowMatch) {
+        return;
+      }
+
+      ctx.shadowOffsetX = Number.parseFloat(shadowMatch[1]) || 0;
+      ctx.shadowOffsetY = Number.parseFloat(shadowMatch[2]) || 0;
+      ctx.shadowBlur = Number.parseFloat(shadowMatch[3]) || 0;
+      ctx.shadowColor = shadowMatch[5];
+    }
+
+    function formatExportTimestamp(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const hours = String(date.getHours()).padStart(2, "0");
+      const minutes = String(date.getMinutes()).padStart(2, "0");
+      const seconds = String(date.getSeconds()).padStart(2, "0");
+      return `${year}${month}${day}-${hours}${minutes}${seconds}`;
+    }
+
+    function triggerBlobDownload(blob, filename) {
+      const objectUrl = URL.createObjectURL(blob);
+      triggerDownloadLink(objectUrl, filename);
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1200);
+    }
+
+    function triggerDataUrlDownload(dataUrl, filename) {
+      triggerDownloadLink(dataUrl, filename);
+    }
+
+    function triggerDownloadLink(href, filename) {
+      const link = document.createElement("a");
+      link.href = href;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }
+
+    function canvasToBlob(canvas, mimeType) {
+      return new Promise((resolve) => {
+        canvas.toBlob(resolve, mimeType);
+      });
+    }
+
+    async function downloadTopCardPng() {
+      if (isCardExportInProgress) {
+        return;
+      }
+
+      isCardExportInProgress = true;
+      try {
+        const rect = frontCard.getBoundingClientRect();
+        const width = Math.max(1, Math.round(rect.width));
+        const height = Math.max(1, Math.round(rect.height));
+        const pixelRatio = Math.max(1, window.devicePixelRatio || 1);
+
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(width * pixelRatio);
+        canvas.height = Math.round(height * pixelRatio);
+
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          return;
+        }
+
+        const cardStyles = window.getComputedStyle(frontCard);
+        const textStyles = window.getComputedStyle(frontText);
+        const radius = parsePixel(cardStyles.borderTopLeftRadius, 24);
+        const borderWidth = parsePixel(cardStyles.borderTopWidth, 1);
+        const lineHeight = parsePixel(textStyles.lineHeight, parsePixel(textStyles.fontSize, 16) * 1.35);
+
+        ctx.scale(pixelRatio, pixelRatio);
+        ctx.clearRect(0, 0, width, height);
+
+        ctx.beginPath();
+        roundedRectPath(ctx, 0, 0, width, height, radius);
+        applyCardShadow(ctx, cardStyles.boxShadow);
+        ctx.fillStyle = cardStyles.backgroundColor || "#ffffff";
+        ctx.fill();
+
+        ctx.shadowColor = "transparent";
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+
+        if (borderWidth > 0) {
+          ctx.lineWidth = borderWidth;
+          ctx.strokeStyle = cardStyles.borderTopColor || "rgba(37, 48, 51, 0.18)";
+          ctx.stroke();
+        }
+
+        const fontSize = parsePixel(textStyles.fontSize, 16);
+        const fontWeight = textStyles.fontWeight || "400";
+        const fontFamily = textStyles.fontFamily || "Helvetica, Arial, sans-serif";
+        ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+        ctx.fillStyle = textStyles.color || "#253033";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        const textMaxWidth = width * 0.84;
+        const lines = buildWrappedLines(ctx, frontText.textContent || "", textMaxWidth);
+        const startY = (height / 2) - (((lines.length - 1) * lineHeight) / 2);
+
+        lines.forEach((line, index) => {
+          ctx.fillText(line, width / 2, startY + (index * lineHeight));
+        });
+
+        const filename = `catalogue-card-${String(currentCardIndex + 1).padStart(3, "0")}-${formatExportTimestamp(new Date())}.png`;
+
+        if (typeof canvas.toBlob === "function") {
+          const blob = await canvasToBlob(canvas, "image/png");
+          if (blob) {
+            triggerBlobDownload(blob, filename);
+            return;
+          }
+        }
+
+        triggerDataUrlDownload(canvas.toDataURL("image/png"), filename);
+      } catch (_error) {
+        // Ignore export failures silently to keep UI uninterrupted.
+      } finally {
+        isCardExportInProgress = false;
+      }
+    }
+
+    function easeInOutQuad(value) {
+      if (value < 0.5) {
+        return 2 * value * value;
+      }
+      return 1 - (((-2 * value) + 2) ** 2) / 2;
+    }
+
+    function clearTitleDotFrame() {
+      if (titleDotFrameId !== null) {
+        window.cancelAnimationFrame(titleDotFrameId);
+        titleDotFrameId = null;
+      }
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function getSingleTouchPoint(event) {
+      if (!event.changedTouches || event.changedTouches.length === 0) {
+        return null;
+      }
+      const touch = event.changedTouches[0];
+      return {
+        x: touch.clientX,
+        y: touch.clientY
+      };
+    }
+
+    function handleCardTouchStart(event) {
+      if (event.touches.length !== 1) {
+        cardTouchStartPoint = null;
+        return;
+      }
+      const touch = event.touches[0];
+      cardTouchStartPoint = {
+        x: touch.clientX,
+        y: touch.clientY,
+        startMs: performance.now()
+      };
+    }
+
+    function handleCardTouchEnd(event) {
+      if (!cardTouchStartPoint || isCardFlipInProgress) {
+        cardTouchStartPoint = null;
+        return;
+      }
+      const touchPoint = getSingleTouchPoint(event);
+      if (!touchPoint) {
+        cardTouchStartPoint = null;
+        return;
+      }
+
+      const deltaX = touchPoint.x - cardTouchStartPoint.x;
+      const deltaY = touchPoint.y - cardTouchStartPoint.y;
+      const absDeltaX = Math.abs(deltaX);
+      const absDeltaY = Math.abs(deltaY);
+      const elapsedMs = performance.now() - cardTouchStartPoint.startMs;
+      cardTouchStartPoint = null;
+
+      if (
+        absDeltaX < CARD_SWIPE_MIN_DISTANCE_PX
+        || elapsedMs > CARD_SWIPE_MAX_DURATION_MS
+        || absDeltaX < absDeltaY * CARD_SWIPE_DIRECTION_BIAS
+      ) {
+        return;
+      }
+
+      suppressCardClickUntilMs = performance.now() + CARD_SWIPE_CLICK_SUPPRESS_MS;
+      event.preventDefault();
+      flipToNextCard(FLIP_TRIGGER_MANUAL);
+    }
+
+    function handleCardTouchCancel() {
+      cardTouchStartPoint = null;
+    }
+
+    function handleCardStackClick(event) {
+      if (performance.now() < suppressCardClickUntilMs) {
+        event.preventDefault();
+        return;
+      }
+      flipToNextCard(FLIP_TRIGGER_MANUAL);
+    }
+
+    function getFlightBounds() {
+      const margin = 18;
+      return {
+        minX: margin,
+        minY: margin,
+        maxX: Math.max(margin + 1, window.innerWidth - margin),
+        maxY: Math.max(margin + 1, window.innerHeight - margin)
+      };
+    }
+
+    function randomViewportPoint() {
+      const bounds = getFlightBounds();
+      return {
+        x: randomFloat(bounds.minX, bounds.maxX),
+        y: randomFloat(bounds.minY, bounds.maxY)
+      };
+    }
+
+    function getOrbitCenterBounds(radiusX, radiusY) {
+      const bounds = getFlightBounds();
+      const maxRadius = Math.max(radiusX, radiusY) * (1 + ORBIT_RADIUS_WOBBLE);
+      const padX = Math.max(28, maxRadius + 28);
+      const padY = Math.max(28, maxRadius + 28);
+      let minX = bounds.minX + padX;
+      let maxX = bounds.maxX - padX;
+      let minY = bounds.minY + padY;
+      let maxY = bounds.maxY - padY;
+
+      if (minX > maxX) {
+        const midX = (bounds.minX + bounds.maxX) / 2;
+        minX = midX;
+        maxX = midX;
+      }
+
+      if (minY > maxY) {
+        const midY = (bounds.minY + bounds.maxY) / 2;
+        minY = midY;
+        maxY = midY;
+      }
+
+      return { minX, maxX, minY, maxY };
+    }
+
+    function pickOrbitRadiiTargets() {
+      const maxX = Math.max(88, Math.min(ORBIT_RADIUS_MAX_X, window.innerWidth * 0.42));
+      const maxY = Math.max(62, Math.min(ORBIT_RADIUS_MAX_Y, window.innerHeight * 0.3));
+      const minX = Math.max(62, Math.min(ORBIT_RADIUS_MIN_X, maxX - 16));
+      const minY = Math.max(46, Math.min(ORBIT_RADIUS_MIN_Y, maxY - 12));
+      orbitRadiusTargetX = randomFloat(minX, maxX);
+      orbitRadiusTargetY = randomFloat(minY, maxY);
+    }
+
+    function animateReturnViaOrbit(targetPointOrResolver, durationMs, motionToken) {
+      return new Promise((resolve) => {
+        const startTime = performance.now();
+        let lastFrameMs = startTime;
+        let localAngle = orbitAngle;
+
+        const startCenter = { ...orbitCenter };
+        const startRadiusX = Math.max(10, orbitRadiusX);
+        const startRadiusY = Math.max(8, orbitRadiusY);
+        const startTilt = orbitTilt;
+        const baseSpeed = Math.max(ORBIT_BASE_SPEED_MIN, Math.abs(orbitAngularBase));
+        const wobblePhase = orbitWobblePhase;
+        const radiusPhase = orbitRadiusPhase;
+        const resolveTarget = () => (typeof targetPointOrResolver === "function" ? targetPointOrResolver() : targetPointOrResolver);
+
+        const step = (now) => {
+          if (motionToken !== titleDotMotionToken) {
+            resolve(false);
+            return;
+          }
+
+          const dt = Math.min(0.05, (now - lastFrameMs) / 1000);
+          lastFrameMs = now;
+          const dtMs = dt * 1000;
+          const progress = clamp((now - startTime) / durationMs, 0, 1);
+          const eased = easeInOutQuad(progress);
+          const remaining = 1 - eased;
+          const radiusFactor = remaining ** 1.15;
+          const wobbleFade = remaining;
+          const currentTarget = resolveTarget();
+
+          const center = {
+            x: startCenter.x + ((currentTarget.x - startCenter.x) * eased),
+            y: startCenter.y + ((currentTarget.y - startCenter.y) * eased)
+          };
+
+          const speedWobble = 1 + (Math.sin((now * ORBIT_SPEED_WOBBLE_FREQ) + wobblePhase) * ORBIT_SPEED_WOBBLE * wobbleFade);
+          const speedFactor = 0.9 - (0.48 * eased);
+          localAngle += baseSpeed * speedWobble * speedFactor * dtMs;
+
+          const radiusX = Math.max(
+            0,
+            startRadiusX * radiusFactor * (1 + (Math.sin((now * ORBIT_RADIUS_WOBBLE_FREQ) + radiusPhase) * ORBIT_RADIUS_WOBBLE * wobbleFade))
+          );
+          const radiusY = Math.max(
+            0,
+            startRadiusY * radiusFactor * (1 + (Math.cos((now * ORBIT_RADIUS_WOBBLE_FREQ * 0.86) + (radiusPhase * 1.19)) * ORBIT_RADIUS_WOBBLE * 0.9 * wobbleFade))
+          );
+
+          const localX = Math.cos(localAngle) * radiusX;
+          const localY = Math.sin(localAngle) * radiusY;
+          const tilt = startTilt * (1 - (eased * 0.9));
+          const cosTilt = Math.cos(tilt);
+          const sinTilt = Math.sin(tilt);
+          let nextPoint = {
+            x: center.x + ((localX * cosTilt) - (localY * sinTilt)),
+            y: center.y + ((localX * sinTilt) + (localY * cosTilt))
+          };
+
+          if (progress >= 1) {
+            nextPoint = { ...currentTarget };
+          }
+
+          setDotPosition(nextPoint.x, nextPoint.y);
+
+          if (progress < 1) {
+            titleDotFrameId = window.requestAnimationFrame(step);
+            return;
+          }
+
+          setDotPosition(currentTarget.x, currentTarget.y);
+          titleDotFrameId = null;
+          resolve(true);
+        };
+
+        titleDotFrameId = window.requestAnimationFrame(step);
+      });
+    }
+
+    function runTitleDotRoam(motionToken) {
+      roamLastFrameMs = 0;
+      orbitLaunchHome = { ...titleDotPosition };
+      orbitCenter = { ...titleDotPosition };
+      orbitCenterTarget = randomViewportPoint();
+      pickOrbitRadiiTargets();
+      orbitRadiusX = 0;
+      orbitRadiusY = 0;
+      orbitAngle = -Math.PI / 2;
+      orbitWobblePhase = randomFloat(0, Math.PI * 2);
+      orbitRadiusPhase = randomFloat(0, Math.PI * 2);
+      orbitAngularBase = randomFloat(ORBIT_BASE_SPEED_MIN, ORBIT_BASE_SPEED_MAX);
+      orbitAngularBaseTarget = orbitAngularBase;
+      orbitTilt = 0;
+      orbitTiltDrift = 0;
+      orbitTiltDriftTarget = 0;
+      orbitLaunchStartMs = 0;
+
+      const frame = (timestamp) => {
+        if (motionToken !== titleDotMotionToken || !titleArea.classList.contains("is-roaming")) {
+          return;
+        }
+
+        if (!roamLastFrameMs) {
+          roamLastFrameMs = timestamp;
+          orbitLaunchStartMs = timestamp;
+          titleDotFrameId = window.requestAnimationFrame(frame);
+          return;
+        }
+
+        const dt = Math.min(0.05, (timestamp - roamLastFrameMs) / 1000);
+        roamLastFrameMs = timestamp;
+        const dtMs = dt * 1000;
+        const launchProgress = clamp((timestamp - orbitLaunchStartMs) / ORBIT_LAUNCH_MS, 0, 1);
+        const launchEase = easeInOutQuad(launchProgress);
+        const launchDriftGain = launchEase * launchEase * launchEase;
+
+        const centerBounds = getOrbitCenterBounds(orbitRadiusTargetX, orbitRadiusTargetY);
+        const centerMidX = (centerBounds.minX + centerBounds.maxX) / 2;
+        const centerMidY = (centerBounds.minY + centerBounds.maxY) / 2;
+        const driftAmpX = Math.max(0, (centerBounds.maxX - centerBounds.minX) * 0.48) * launchDriftGain;
+        const driftAmpY = Math.max(0, (centerBounds.maxY - centerBounds.minY) * 0.48) * launchDriftGain;
+        const driftAngle = (timestamp * ORBIT_CENTER_DRIFT_SPEED) + titleDotHeading;
+        const driftTarget = {
+          x: centerMidX + (Math.cos(driftAngle) * driftAmpX),
+          y: centerMidY + (Math.sin((driftAngle * ORBIT_CENTER_DRIFT_RATIO) + 1.1) * driftAmpY)
+        };
+        const upwardTarget = {
+          x: orbitLaunchHome.x + (Math.sin(Math.PI * launchEase) * ORBIT_LAUNCH_CURVE_X_PX),
+          y: orbitLaunchHome.y - (ORBIT_LAUNCH_UPWARD_PX * launchEase)
+        };
+        const blendToDrift = launchEase * launchEase;
+        orbitCenterTarget = {
+          x: clamp(
+            upwardTarget.x + ((driftTarget.x - upwardTarget.x) * blendToDrift),
+            centerBounds.minX,
+            centerBounds.maxX
+          ),
+          y: clamp(
+            upwardTarget.y + ((driftTarget.y - upwardTarget.y) * blendToDrift),
+            centerBounds.minY,
+            centerBounds.maxY
+          )
+        };
+
+        const centerBlend = 1 - Math.exp(-ORBIT_CENTER_FOLLOW * dt);
+        orbitCenter.x += (orbitCenterTarget.x - orbitCenter.x) * centerBlend;
+        orbitCenter.y += (orbitCenterTarget.y - orbitCenter.y) * centerBlend;
+
+        const radiusBlend = 1 - Math.exp(-ORBIT_RADIUS_RESPONSE * dt);
+        orbitRadiusX += (orbitRadiusTargetX - orbitRadiusX) * radiusBlend;
+        orbitRadiusY += (orbitRadiusTargetY - orbitRadiusY) * radiusBlend;
+
+        const paramBlend = 1 - Math.exp(-ORBIT_PARAM_RESPONSE * dt);
+        orbitAngularBase += (orbitAngularBaseTarget - orbitAngularBase) * paramBlend;
+        const tiltBlend = 1 - Math.exp(-ORBIT_TILT_RESPONSE * dt);
+        orbitTiltDrift += (orbitTiltDriftTarget - orbitTiltDrift) * tiltBlend;
+
+        orbitTilt += orbitTiltDrift * dtMs;
+        const speedWobble = 1 + (Math.sin((timestamp * ORBIT_SPEED_WOBBLE_FREQ) + orbitWobblePhase) * ORBIT_SPEED_WOBBLE);
+        const launchOrbitGain = (launchEase * launchEase);
+        orbitAngle += Math.abs(orbitAngularBase) * speedWobble * dtMs * (0.18 + (0.82 * launchOrbitGain));
+
+        const radiusX = Math.max(
+          0,
+          orbitRadiusX * launchEase * (1 + (Math.sin((timestamp * ORBIT_RADIUS_WOBBLE_FREQ) + orbitRadiusPhase) * ORBIT_RADIUS_WOBBLE))
+        );
+        const radiusY = Math.max(
+          0,
+          orbitRadiusY * launchEase * (1 + (Math.cos((timestamp * ORBIT_RADIUS_WOBBLE_FREQ * 0.86) + (orbitRadiusPhase * 1.19)) * (ORBIT_RADIUS_WOBBLE * 0.9)))
+        );
+
+        const localX = Math.cos(orbitAngle) * radiusX;
+        const localY = Math.sin(orbitAngle) * radiusY;
+        const cosTilt = Math.cos(orbitTilt);
+        const sinTilt = Math.sin(orbitTilt);
+        const nextPoint = {
+          x: orbitCenter.x + ((localX * cosTilt) - (localY * sinTilt)),
+          y: orbitCenter.y + ((localX * sinTilt) + (localY * cosTilt))
+        };
+
+        const bounds = getFlightBounds();
+        const clampedPoint = {
+          x: clamp(nextPoint.x, bounds.minX, bounds.maxX),
+          y: clamp(nextPoint.y, bounds.minY, bounds.maxY)
+        };
+
+        setDotPosition(clampedPoint.x, clampedPoint.y);
+
+        titleDotFrameId = window.requestAnimationFrame(frame);
+      };
+
+      titleDotFrameId = window.requestAnimationFrame(frame);
+    }
+
+    function startTitleDotRoam() {
+      const motionToken = titleDotMotionToken + 1;
+      titleDotMotionToken = motionToken;
+      clearTitleDotFrame();
+      ambientLayer.classList.add("is-active");
+      titleArea.classList.add("is-roaming");
+      const home = getTitleButtonCenter();
+      setDotPosition(home.x, home.y);
+      titleDotHeading = randomFloat(0, Math.PI * 2);
+      runTitleDotRoam(motionToken);
+    }
+
+    function stopTitleDotRoamAndReturnHome() {
+      const motionToken = titleDotMotionToken + 1;
+      titleDotMotionToken = motionToken;
+      clearTitleDotFrame();
+
+      if (!ambientLayer.classList.contains("is-active")) {
+        const currentHome = getTitleButtonCenter();
+        setDotPosition(currentHome.x, currentHome.y);
+        titleArea.classList.remove("is-roaming");
+        return;
+      }
+
+      animateReturnViaOrbit(() => getTitleButtonCenter(), DOT_RETURN_MS, motionToken).then((completed) => {
+        if (!completed || motionToken !== titleDotMotionToken || titleArea.classList.contains("is-revealed")) {
+          return;
+        }
+        ambientLayer.classList.remove("is-active");
+        titleArea.classList.remove("is-roaming");
+      });
+    }
+
+    function advanceDeckPointer() {
+      if (deckSequence.length === 0) {
+        resetDeck();
+      } else if (deckPointer >= deckSequence.length - 1) {
+        if (!queuedDeckSequence) {
+          queuedDeckSequence = buildDeck(currentCardIndex);
+        }
+
+        deckSequence = queuedDeckSequence;
+        queuedDeckSequence = null;
+        deckPointer = 0;
+        currentCardIndex = deckSequence[deckPointer];
+      } else {
+        deckPointer += 1;
+        currentCardIndex = deckSequence[deckPointer];
+      }
+    }
+
+    function flipToNextCard(trigger = FLIP_TRIGGER_MANUAL) {
+      if (isCardFlipInProgress) {
+        return;
+      }
+
+      isCardFlipInProgress = true;
+      cardStack.classList.add("is-flipping");
+      const flipDuration = trigger === FLIP_TRIGGER_LIVE ? FLIP_DURATION_LIVE_MS : FLIP_DURATION_CLICK_MS;
+
+      const outgoingCard = frontCard;
+      const rect = outgoingCard.getBoundingClientRect();
+      const viewportMargin = 12;
+      const rightSpace = Math.max(0, window.innerWidth - rect.right - viewportMargin);
+      const leftSpace = Math.max(0, rect.left - viewportMargin);
+      const baseDirection = rightSpace >= leftSpace ? -1 : 1;
+      const direction = trigger === FLIP_TRIGGER_MANUAL ? -baseDirection : baseDirection;
+      const sideSpace = direction === 1 ? rightSpace : leftSpace;
+      const requiredClearX = rect.width + 24;
+      const sideTravel = sideSpace >= requiredClearX
+        ? requiredClearX
+        : Math.max(rect.width * 0.82, sideSpace * 0.96);
+      const clearX = direction * sideTravel;
+      const clearY = -Math.max(32, rect.height * 0.22);
+      const clearRot = direction * 9.4;
+      const clearDuration = Math.round(flipDuration * FLIP_CLEAR_PHASE);
+      const returnDuration = flipDuration - clearDuration;
+      const outgoingTextSnapshot = frontText.textContent || "";
+      const resetCardAnimations = () => {
+        outgoingCard.getAnimations().forEach((animation) => animation.cancel());
+      };
+      resetCardAnimations();
+
+      let hasSwapped = false;
+      let syncBackText = null;
+      const swapBehindDeck = () => {
+        if (hasSwapped) {
+          return;
+        }
+        hasSwapped = true;
+        swapCardLayers();
+        advanceDeckPointer();
+        frontText.textContent = cardTexts[currentCardIndex];
+        backText.textContent = outgoingTextSnapshot;
+        let hasSyncedBackText = false;
+        syncBackText = () => {
+          if (hasSyncedBackText) {
+            return;
+          }
+          hasSyncedBackText = true;
+          backText.textContent = cardTexts[peekNextIndex()];
+        };
+
+        const returnAnimation = outgoingCard.animate(
+          [
+            {
+              transform: `translate(${clearX}px, ${clearY * 0.78}px) rotate(${clearRot}deg) scale(0.994)`,
+              boxShadow: "0 10px 20px rgba(21, 36, 48, 0.048)",
+              opacity: FLIP_FADE_CLEAR_END_OPACITY,
+              offset: 0
+            },
+            {
+              transform: `translate(${clearX * 0.7}px, ${clearY * 0.62}px) rotate(${clearRot * 0.72}deg) scale(0.995)`,
+              boxShadow: "0 8px 16px rgba(21, 36, 48, 0.04)",
+              opacity: FLIP_FADE_RETURN_MID_OPACITY,
+              offset: 0.38
+            },
+            {
+              transform: `translate(${clearX * 0.26}px, ${clearY * 0.18}px) rotate(${clearRot * 0.18}deg) scale(0.998)`,
+              boxShadow: "0 5px 11px rgba(21, 36, 48, 0.032)",
+              opacity: 0.2,
+              offset: 0.76
+            },
+            {
+              transform: "translate(0, 0) rotate(0deg) scale(1)",
+              boxShadow: "0 4px 10px rgba(21, 36, 48, 0.028)",
+              opacity: FLIP_FADE_RETURN_END_OPACITY,
+              offset: 1
+            }
+          ],
+          {
+            duration: returnDuration,
+            easing: "cubic-bezier(0.24, 0.7, 0.2, 1)",
+            fill: "forwards"
+          }
+        );
+        returnAnimation.addEventListener("finish", syncBackText, { once: true });
+        window.setTimeout(syncBackText, returnDuration + 48);
+      };
+
+      const clearAnimation = outgoingCard.animate(
+        [
+          {
+            transform: "translate(0, 0) rotate(0deg) scale(1)",
+            boxShadow: "0 4px 10px rgba(21, 36, 48, 0.028)",
+            opacity: 1,
+            offset: 0
+          },
+          {
+            transform: `translate(${clearX * 0.34}px, ${clearY * 0.44}px) rotate(${clearRot * 0.36}deg) scale(0.998)`,
+            boxShadow: "0 7px 14px rgba(21, 36, 48, 0.038)",
+            opacity: 0.92,
+            offset: 0.34
+          },
+          {
+            transform: `translate(${clearX * 0.78}px, ${clearY * 0.86}px) rotate(${clearRot * 0.8}deg) scale(0.995)`,
+            boxShadow: "0 10px 20px rgba(21, 36, 48, 0.05)",
+            opacity: FLIP_FADE_CLEAR_MID_OPACITY,
+            offset: 0.72
+          },
+          {
+            transform: `translate(${clearX}px, ${clearY * 0.78}px) rotate(${clearRot}deg) scale(0.994)`,
+            boxShadow: "0 11px 22px rgba(21, 36, 48, 0.052)",
+            opacity: FLIP_FADE_CLEAR_END_OPACITY,
+            offset: 1
+          }
+        ],
+        {
+          duration: clearDuration,
+          easing: "cubic-bezier(0.22, 0.61, 0.36, 1)",
+          fill: "forwards"
+        }
+      );
+      clearAnimation.addEventListener("finish", swapBehindDeck, { once: true });
+      window.setTimeout(swapBehindDeck, clearDuration + 40);
+
+      window.setTimeout(() => {
+        if (typeof syncBackText === "function") {
+          syncBackText();
+        }
+        resetCardAnimations();
+        frontCard.getAnimations().forEach((animation) => animation.cancel());
+        backCard.getAnimations().forEach((animation) => animation.cancel());
+        cardStack.classList.remove("is-flipping");
+        isCardFlipInProgress = false;
+      }, flipDuration + FLIP_SETTLE_LOCK_MS);
+    }
+
+    function clearLiveFlipInterval() {
+      if (liveFlipIntervalId !== null) {
+        clearInterval(liveFlipIntervalId);
+        liveFlipIntervalId = null;
+      }
+    }
+
+    function stopLiveMode() {
+      clearLiveFlipInterval();
+      isLiveMode = false;
+      renderLiveModeState();
+    }
+
+    function startLiveMode() {
+      clearLiveFlipInterval();
+      isLiveMode = true;
+      renderLiveModeState();
+      liveFlipIntervalId = setInterval(() => flipToNextCard(FLIP_TRIGGER_LIVE), LIVE_INTERVAL_MS);
+    }
+
+    function toggleLiveMode() {
+      if (isLiveMode) {
+        stopLiveMode();
+        return;
+      }
+      startLiveMode();
+    }
+
+    cardStack.addEventListener("click", handleCardStackClick);
+    cardStack.addEventListener("touchstart", handleCardTouchStart, { passive: true });
+    cardStack.addEventListener("touchend", handleCardTouchEnd, { passive: false });
+    cardStack.addEventListener("touchcancel", handleCardTouchCancel, { passive: true });
+    cardExportButton.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      downloadTopCardPng();
+    });
+    cardExportButton.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.stopPropagation();
+      }
+    });
+    titleToggle.addEventListener("click", toggleTitleVisibility);
+    liveButton.addEventListener("click", toggleLiveMode);
+
+    cardStack.addEventListener("keydown", (event) => {
+      if (event.key.toLowerCase() === "d") {
+        event.preventDefault();
+        downloadTopCardPng();
+        return;
+      }
+
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        flipToNextCard(FLIP_TRIGGER_MANUAL);
+      }
+    });
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden && isLiveMode) {
+        stopLiveMode();
+      }
+    });
+
+    window.addEventListener("resize", () => {
+      if (!titleArea.classList.contains("is-roaming")) {
+        const home = getTitleButtonCenter();
+        setDotPosition(home.x, home.y);
+      }
+    });
+
+    resetDeck();
+    syncLiveOrbitCycle();
+    renderLiveModeState();
+    renderVisibleCards();
+    setDotPosition(getTitleButtonCenter().x, getTitleButtonCenter().y);
+  </script>
+</body>
+</html>
